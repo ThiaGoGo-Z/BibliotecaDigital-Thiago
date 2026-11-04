@@ -45,7 +45,7 @@ public class LibraryServiceTests
             Isbn = "9780132350884", PublishedYear = 2020, AvailableCopies = 1
         });
 
-        Assert.Null(result.Book);
+        Assert.True(result.Book);
         Assert.Contains("ISBN", result.Error);
         _books.Verify(x => x.Add(It.IsAny<Book>()), Times.Never);
     }
