@@ -27,15 +27,17 @@ public sealed class BooksController(LibraryService service) : ControllerBase
             : CreatedAtAction(nameof(GetById), new { id = result.Book!.Id }, result.Book);
     }
 
-    
     [HttpDelete("{id:int}")]
     public IActionResult Delete(int id)
     {
         if (service.GetBook(id) is null)
             return NotFound(new { message = "Libro no encontrado." });
 
-        // FALLO CONTROLADO: no eliminamos realmente el libro.
+        if (!service.DeleteBook(id))
+            return Conflict(new { message = "No se puede eliminar un libro con préstamos activos." });
+
         return NoContent();
     }
+
 
 }
