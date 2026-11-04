@@ -6,3 +6,4 @@ TestResults/
 *.user
 *.suo
 .coverage
+# Proyecto Biblioteca Digital con pruebas automatizadas mediante GitHub Actions
