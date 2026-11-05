@@ -69,4 +69,24 @@ public class CoverageTests
             "No existe el libro indicado.",
             result.Error);
     }
+    
+    [Fact]
+    public void DeleteBook_UnknownId_ReturnsFalse()
+    {
+        // Arrange: creamos el repositorio de libros.
+        var repository = new InMemoryBookRepository();
+
+        // Guardamos la cantidad inicial.
+        var initialCount = repository.GetAll().Count;
+
+        // Act: intentamos eliminar un libro inexistente.
+        var result = repository.Delete(9999);
+
+        // Assert: no se debe eliminar ningún libro.
+        Assert.False(result);
+
+        // La cantidad de libros debe mantenerse.
+        Assert.Equal(initialCount, repository.GetAll().Count);
+    }
+
 }
