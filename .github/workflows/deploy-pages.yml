@@ -46,7 +46,7 @@ jobs:
       - name: Subir archivos para GitHub Pages
         uses: actions/upload-pages-artifact@v5
         with:
-            path: sitio-inexistente/
+            path: site/
 
   deploy:
     name: Publicar en GitHub Pages
