@@ -105,6 +105,126 @@ public class LoansApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
             "Prueba de consulta",
             loan.GetProperty("borrower").GetString());
     }
+        
+    [Fact]
+    public async Task ReturnLoan_WithActiveLoan_ReturnsOk()
+    {
+        // Arrange: creamos un préstamo activo.
+        var request = new CreateLoanRequest
+        {
+            BookId = 1,
+            Borrower = "Prueba de devolución",
+            LoanDate = new DateOnly(2026, 11, 5),
+            DueDate = new DateOnly(2026, 11, 19)
+        };
+
+        var createResponse = await _client.PostAsJsonAsync(
+            "/api/loans", request);
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var location = createResponse.Headers.Location;
+        Assert.NotNull(location);
+
+        // Obtenemos el ID del préstamo recién creado.
+        var loanId = int.Parse(
+            location.ToString().TrimEnd('/').Split('/').Last());
+
+        // Act: devolvemos el préstamo.
+        var returnResponse = await _client.PutAsync(
+            $"/api/loans/{loanId}/return", null);
+
+        // Assert: la devolución debe completarse correctamente.
+        Assert.Equal(HttpStatusCode.OK, returnResponse.StatusCode);
+    }
+    
+    [Fact]
+    public async Task ReturnLoan_AlreadyReturned_ReturnsConflict()
+    {
+        // Crear un préstamo activo.
+        var request = new CreateLoanRequest
+        {
+            BookId = 1,
+            Borrower = "Prueba devolución duplicada",
+            LoanDate = new DateOnly(2026, 11, 5),
+            DueDate = new DateOnly(2026, 11, 19)
+        };
+
+        var createResponse = await _client.PostAsJsonAsync(
+            "/api/loans", request);
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var location = createResponse.Headers.Location;
+        Assert.NotNull(location);
+
+        var loanId = int.Parse(
+            location.ToString().TrimEnd('/').Split('/').Last());
+
+        // Primera devolución: correcta.
+        var firstReturn = await _client.PutAsync(
+            $"/api/loans/{loanId}/return", null);
+
+        Assert.Equal(HttpStatusCode.OK, firstReturn.StatusCode);
+
+        // Segunda devolución: debe rechazarse.
+        var secondReturn = await _client.PutAsync(
+            $"/api/loans/{loanId}/return", null);
+
+        Assert.Equal(HttpStatusCode.Conflict, secondReturn.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateLoan_WithoutDates_ReturnsBadRequest()
+    {
+        // Enviamos un JSON sin las fechas obligatorias.
+        var request = new
+        {
+            BookId = 1,
+            Borrower = "Prueba sin fechas"
+        };
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/loans", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateLoan_WithInvalidBookId_ReturnsBadRequest()
+    {
+        // BookId debe ser mayor que cero.
+        var request = new CreateLoanRequest
+        {
+            BookId = 0,
+            Borrower = "Prueba ID inválido",
+            LoanDate = new DateOnly(2026, 11, 5),
+            DueDate = new DateOnly(2026, 11, 19)
+        };
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/loans", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateLoan_WithEmptyBorrower_ReturnsBadRequest()
+    {
+        // El nombre del prestatario es obligatorio.
+        var request = new CreateLoanRequest
+        {
+            BookId = 1,
+            Borrower = "",
+            LoanDate = new DateOnly(2026, 11, 5),
+            DueDate = new DateOnly(2026, 11, 19)
+        };
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/loans", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 
 
 }
