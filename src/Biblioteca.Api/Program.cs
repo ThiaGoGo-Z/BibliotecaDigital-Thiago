@@ -32,5 +32,3 @@ app.MapGet("/api/health", () => Results.Ok(new { status = "ok", service = "Bibli
 app.MapControllers();
 
 await app.RunAsync();
-
-public partial class Program;
