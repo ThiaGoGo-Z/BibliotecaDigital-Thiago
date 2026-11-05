@@ -31,6 +31,6 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", service = "Biblioteca Digital API" }));
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
 
 public partial class Program;
